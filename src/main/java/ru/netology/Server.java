@@ -9,13 +9,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
-    public void start() {
+    ConcurrentHashMap<String, ConcurrentHashMap<String, Handler>> handlerBase = new ConcurrentHashMap<>();
+
+    public void start(int port) {
         Runnable runnable = () -> {
-            try (final var serverSocket = new ServerSocket(9999)) {
+            try (final var serverSocket = new ServerSocket(port)) {
                 while (true) {
                     try (final var socket = serverSocket.accept();
                          final var in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -31,7 +34,9 @@ public class Server {
         threadPool.execute(runnable);
     }
 
-    public static void server(BufferedReader in, BufferedOutputStream out) throws IOException {
+    public void server(BufferedReader in, BufferedOutputStream out) throws IOException {
+        Handler handler;
+        Request request;
         final var validPaths = List.of("/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js", "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js");
 
         // read only request line for simplicity
@@ -42,6 +47,14 @@ public class Server {
         if (parts.length != 3) {
             // just close socket
             return;
+        }
+
+        request = new Request(parts[0], parts[1], in);
+        if (handlerBase.containsKey(parts[0])) {
+            if (handlerBase.get(parts[0]).containsKey(parts[1])) {
+                handler = handlerBase.get(parts[0]).get(parts[1]);
+                handler.handle(request, out);
+            }
         }
 
         final var path = parts[1];
@@ -88,5 +101,12 @@ public class Server {
         ).getBytes());
         Files.copy(filePath, out);
         out.flush();
+    }
+
+    public void addHandler(String requestMethod, String path, Handler handler) {
+        if (!handlerBase.containsKey(requestMethod)) {
+            handlerBase.put(requestMethod, new ConcurrentHashMap<>());
+        }
+        handlerBase.get(requestMethod).put(path, handler);
     }
 }
