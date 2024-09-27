@@ -2,27 +2,23 @@ package ru.netology;
 
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
-import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.RequestContext;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.logging.impl.ServletContextCleaner;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
 
 public class Request {
-    String method;
-    String path;
-    String[] parts;
-    String body;
-    List<String> headers;
-    BufferedInputStream in;
+    private String method;
+    private String path;
+    private String[] parts;
+    private String body;
+    private List<String> headers;
+    private BufferedInputStream in;
 
     public Request(String method, String path, List<String> headers, String body) {
         this.method = method;
@@ -44,7 +40,7 @@ public class Request {
         return newPath;
     }
 
-    public List<NameValuePair> getQueryParams() {
+    protected List<NameValuePair> getQueryParams() {
         String newPath = path;
         int indexNumber = newPath.indexOf('?');
         if (indexNumber >= 0) {
@@ -57,7 +53,7 @@ public class Request {
         return params;
     }
 
-    public boolean getQueryParam(String name) {
+    protected boolean getQueryParam(String name) {
         boolean result = false;
         if (getQueryParams().contains(name)) {
             result = true;
@@ -65,7 +61,7 @@ public class Request {
         return result;
     }
 
-    public List<NameValuePair> getPostParams() {
+    protected List<NameValuePair> getPostParams() {
         List<NameValuePair> params = URLEncodedUtils.parse(body, StandardCharsets.UTF_8);
         for (NameValuePair param : params) {
             System.out.printf("%s !! %s\n", param.getName(), param.getValue());
@@ -73,7 +69,7 @@ public class Request {
         return params;
     }
 
-    public boolean getPostParam(String name) {
+    protected boolean getPostParam(String name) {
         boolean result = false;
         if (getPostParams().contains(name)) {
             result = true;
@@ -81,7 +77,7 @@ public class Request {
         return result;
     }
 
-    public String getParts() throws Exception {
+    protected String getParts() throws Exception {
         ServletFileUpload upload = new ServletFileUpload();
         FileItemIterator iter = upload.getItemIterator((RequestContext) in);
         String result = null;
@@ -95,7 +91,7 @@ public class Request {
         return result;
     }
 
-    public boolean getPart(String name) throws Exception {
+    protected boolean getPart(String name) throws Exception {
         boolean result = false;
         if (getParts().contains(name)) {
             result = true;

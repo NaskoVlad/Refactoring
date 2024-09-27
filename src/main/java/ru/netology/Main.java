@@ -56,19 +56,20 @@ public class Main {
         });
 
         server.addHandler("GET", "/", new Handler() {
-            public void handle(Request request, BufferedOutputStream responseStream) throws IOException {
+            public void handle(Request request, BufferedOutputStream responseStream) {
                 System.out.println("Все ок -1 ");
             }
         });
 
         server.addHandler("POST", "/", new Handler() {
-            public void handle(Request request, BufferedOutputStream responseStream) throws IOException {
+            public void handle(Request request, BufferedOutputStream responseStream) {
                 System.out.println("Все ок - 2");
             }
         });
         server.start(8080);
     }
-    public void handle() {
+
+    private void handle() {
         new Handler() {
             public void handle(Request request, BufferedOutputStream responseStream) throws IOException {
                 String path = request.getPath();
